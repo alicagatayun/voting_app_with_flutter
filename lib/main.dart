@@ -394,8 +394,8 @@ class _UserDetailState extends State<UserDetail> {
           ),
           const Spacer(),
            Padding(
-            padding: EdgeInsets.only(top: 23.0),
-            child: Center(child: Text(firebaseuser?.uid.toString())),
+            padding: const EdgeInsets.only(top: 23.0),
+            child: Center(child: Text(firebaseuser!.uid.toString())),
           ),
           const Spacer(),
           Padding(
