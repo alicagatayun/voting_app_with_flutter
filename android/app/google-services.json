@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "71156585057",
+    "project_id": "sp-ar-bb143",
+    "storage_bucket": "sp-ar-bb143.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71156585057:android:25a6fc1a3fac31a6565020",
+        "android_client_info": {
+          "package_name": "com.ali.spl.spl"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "71156585057-q7cficf3aoqrk5uf6q903utnnjfgd2m8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwFAEBXE0N6w-rIxfZUqpFAnBz0Le9Xx0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "71156585057-q7cficf3aoqrk5uf6q903utnnjfgd2m8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
