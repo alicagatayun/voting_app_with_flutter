@@ -340,7 +340,7 @@ class _UserDetailState extends State<UserDetail> {
     final firebaseuser = context.watch<User?>();
 
     return Container(
-      color: Colors.white,
+      color: Colors.red,
       child: Column(
         //Center Column contents horizontally,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -367,7 +367,7 @@ class _UserDetailState extends State<UserDetail> {
             ),
           ),
           const Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Divider(
               thickness: 2,
             ),
@@ -393,7 +393,7 @@ class _UserDetailState extends State<UserDetail> {
             ),
           ),
           const Spacer(),
-           Padding(
+          Padding(
             padding: const EdgeInsets.only(top: 23.0),
             child: Center(child: Text(firebaseuser!.uid.toString())),
           ),

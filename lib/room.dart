@@ -38,6 +38,13 @@ class _RoomManagementState extends State<RoomManagement> {
         if (snapshot.hasData) {
           final docs = snapshot.data!;
           final data = docs['users'];
+          const double runSpacing = 4;
+          const double spacing = 4;
+          const columns = 4;
+          final w =
+              (MediaQuery.of(context).size.width - runSpacing * (columns - 1)) /
+                  columns;
+
           return Scaffold(
             appBar: AppBar(
               title: Text(docs['name']),
@@ -50,24 +57,19 @@ class _RoomManagementState extends State<RoomManagement> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(docs['vote_status']),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: GridView(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      primary: false,
-                      children: List<Widget>.generate(data.length, (index) {
-                        final userData = data[index];
-                        return Column(
+                  Wrap(
+                    spacing: spacing, //vertical spacing
+                    runSpacing: runSpacing, //horizontal spacing
+                    alignment: WrapAlignment.spaceEvenly,
+                    children: List<Widget>.generate(data.length, (index) {
+                      final userData = data[index];
+                      return SizedBox(
+                        width: w,
+                        height: w,
+                        child: Column(
                           children: [
                             CircleAvatar(
-                              child: Text("AA"),
+                              child: Text(userData['id'].toString()),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -79,9 +81,9 @@ class _RoomManagementState extends State<RoomManagement> {
                               ),
                             ),
                           ],
-                        );
-                      }),
-                    ),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
