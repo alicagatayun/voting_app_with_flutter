@@ -251,7 +251,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   var _currentIndex = 0;
   static final List<Widget> _widgetOptions = <Widget>[
-    const RoomList(),
+    RoomList(),
     const UserDetail()
   ];
 
@@ -286,9 +286,14 @@ class _RoomPageState extends State<RoomPage> {
   }
 }
 
-class RoomList extends StatelessWidget {
+class RoomList extends StatefulWidget {
   const RoomList({Key? key}) : super(key: key);
 
+  @override
+  State<RoomList> createState() => _RoomListState();
+}
+
+class _RoomListState extends State<RoomList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -297,21 +302,125 @@ class RoomList extends StatelessWidget {
         if (snapshot.hasError) return Text('Error = ${snapshot.error}');
         if (snapshot.hasData) {
           final docs = snapshot.data!.docs;
+          final double screenWidth = MediaQuery.of(context).size.width;
+          final double radius = screenWidth * 0.01;
           return Scaffold(
-            body: ListView.builder(
+            body: ListView.separated(
+              separatorBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(left:16.0,right:16),
+                  child: Divider(),
+                );
+              },
               itemCount: docs.length,
               itemBuilder: (_, i) {
                 final data = docs[i].data();
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => RoomManagement(docs[i].id)));
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) {
+                        GlobalKey<FormState> _globalFormKey = GlobalKey();
+                        TextEditingController password =
+                            TextEditingController();
+
+                        bool hasError = false;
+                        return Form(
+                          key: _globalFormKey,
+                          child: AlertDialog(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(40)),
+                            elevation: 16,
+                            title: Center(
+                                child: Text(
+                              data['name'] + " Room Password",
+                              style: TextStyle(fontSize: 16),
+                            )),
+                            content: TextFormField(
+                              controller: password,
+                              obscureText: true,
+                              validator: (value) {
+                                if (data['pw'] != password.text) {
+                                  return 'Wrong Password';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                errorText: hasError ? 'Wrong Password' : null,
+                                hintText: "Password",
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide:
+                                      BorderSide(width: 1, color: Colors.green),
+                                ),
+                                disabledBorder: const OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(
+                                      width: 1, color: Colors.orange),
+                                ),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide:
+                                      BorderSide(width: 1, color: Colors.green),
+                                ),
+                                border: const OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
+                                    borderSide: BorderSide(
+                                      width: 1,
+                                    )),
+                                errorBorder: const OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
+                                    borderSide: BorderSide(
+                                        width: 1, color: Colors.black)),
+                                focusedErrorBorder: const OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
+                                    borderSide: BorderSide(
+                                        width: 1, color: Colors.red)),
+                              ),
+                            ),
+                            actions: <Widget>[
+                              Center(
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      if (_globalFormKey.currentState!
+                                          .validate()) {
+                                        Navigator.pop(dialogContext);
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    RoomManagement(
+                                                        docs[i].id)));
+                                      }
+                                    },
+                                    child: const Text("Confirm")),
+                              )
+                            ],
+                          ),
+                        );
+                      },
+                    );
                   },
                   child: ListTile(
                     title: Text(data['name']),
-                    subtitle: Text(data['roomId']),
+                    subtitle: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.green,
+                          radius: radius,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(data['roomStatus']),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -334,14 +443,31 @@ class UserDetail extends StatefulWidget {
 class _UserDetailState extends State<UserDetail> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController surnameController = TextEditingController();
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    final result =
+        context.read<AuthenticationService>().getUserDetail().then((value) {
+      if (value.name != '') {
+        setState(() {
+          isLoading = false;
+        });
+        nameController.text = value.name!;
+        surnameController.text = value.surname!;
+      }
+    });
+
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final firebaseuser = context.watch<User?>();
 
-    return Container(
-      color: Colors.red,
-      child: Column(
+    if (!isLoading) {
+      return Column(
         //Center Column contents horizontally,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,12 +481,12 @@ class _UserDetailState extends State<UserDetail> {
                   child: TextField(
                     controller: nameController,
                     decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelStyle: TextStyle(fontSize: 12),
-                        labelText: 'Enter your name correctly',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(12.0) // Added this
-                        ),
+                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(fontSize: 12),
+                      labelText: 'Enter your name correctly',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(12.0), // Added this
+                    ),
                   ),
                 )
               ],
@@ -412,13 +538,28 @@ class _UserDetailState extends State<UserDetail> {
                           RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18.0),
                               side: const BorderSide(color: Colors.red)))),
-                  onPressed: () {},
+                  onPressed: () async {
+                    final result = await context
+                        .read<AuthenticationService>()
+                        .saveUserData(
+                          name: nameController.text.trim(),
+                          surname: surnameController.text.trim(),
+                        )
+                        .then((value) {
+                      if (value == "OK") {
+                        const SnackBar(
+                          content: Text('User Data is saved successfully'),
+                        );
+                      }
+                    });
+                  },
                   child: Text("Save your user data".toUpperCase(),
                       style: const TextStyle(fontSize: 14))),
             ),
           )
         ],
-      ),
-    );
+      );
+    }
+    return const Center(child: CircularProgressIndicator());
   }
 }
