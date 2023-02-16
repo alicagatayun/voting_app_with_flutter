@@ -307,8 +307,8 @@ class _RoomListState extends State<RoomList> {
           return Scaffold(
             body: ListView.separated(
               separatorBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(left:16.0,right:16),
+                return const Padding(
+                  padding: EdgeInsets.only(left:16.0,right:16),
                   child: Divider(),
                 );
               },
