@@ -308,7 +308,7 @@ class _RoomListState extends State<RoomList> {
             body: ListView.separated(
               separatorBuilder: (context, index) {
                 return const Padding(
-                  padding: EdgeInsets.only(left:16.0,right:16),
+                  padding: EdgeInsets.only(left: 16.0, right: 16),
                   child: Divider(),
                 );
               },
@@ -323,7 +323,6 @@ class _RoomListState extends State<RoomList> {
                         GlobalKey<FormState> _globalFormKey = GlobalKey();
                         TextEditingController password =
                             TextEditingController();
-
                         bool hasError = false;
                         return Form(
                           key: _globalFormKey,
@@ -334,7 +333,7 @@ class _RoomListState extends State<RoomList> {
                             title: Center(
                                 child: Text(
                               data['name'] + " Room Password",
-                              style: TextStyle(fontSize: 16),
+                              style: const TextStyle(fontSize: 16),
                             )),
                             content: TextFormField(
                               controller: password,
@@ -391,6 +390,13 @@ class _RoomListState extends State<RoomList> {
                                       if (_globalFormKey.currentState!
                                           .validate()) {
                                         Navigator.pop(dialogContext);
+
+
+
+
+
+
+
                                         Navigator.push(
                                             context,
                                             MaterialPageRoute(

@@ -50,6 +50,64 @@ class AuthenticationService {
     }
   }
 
+  Future<String> assignUserToARooom(
+      {required String roomId, required String userId}) async {
+    try {
+      var userExistSnapshot = firestoreInstance
+          .collection('rooms')
+          .where('users', arrayContains: {'id': userId}).get();
+      if (userExistSnapshot.toString().isEmpty) {
+        DocumentReference documentReference =
+            firestoreInstance.collection('rooms').doc(roomId);
+
+        //Kullanıcının username'ini alır.
+        DocumentReference documentReferenceForUserTable =
+            firestoreInstance.collection('users').doc(userId);
+        var userName;
+        documentReferenceForUserTable.get().then((value) {
+          Map<String, dynamic>? data = value.data() as Map<String, dynamic>?;
+          if (value.exists && data != null) {
+            userName = data['name'];
+          }
+        });
+
+        //Kullanıcıyı selected odaya assign eder.
+        documentReference.get().then((documentSnapshot) {
+          Map<String, dynamic>? data =
+              documentSnapshot.data() as Map<String, dynamic>?;
+
+          //Users map'i exist
+          if (documentSnapshot.exists &&
+              data != null &&
+              data['users'] != null) {
+            Map<String, dynamic> newUser = {
+              'id': userId,
+              'name': userName,
+              'sp': "-1",
+            };
+
+            documentReference.update(newUser);
+
+
+
+          } else {
+            //UserMapi not exist
+            List<Map<String, String>> myArray = [
+              {'id': userId, 'sp': "-1", 'name': userName},
+            ];
+            documentReference.set({
+              'users': myArray,
+            });
+          }
+        });
+      } else {}
+
+      return "OK";
+    } on FirebaseException catch (e) {
+      return e.message!;
+    }
+  }
+
   // 5
   Future<String> signOut() async {
     try {
@@ -70,10 +128,8 @@ class AuthenticationService {
   }
 
   Future<UserDetail> getUserDetail() async {
-    DocumentSnapshot documentSnapshot = await firestoreInstance
-        .collection("users")
-        .doc(getUser()?.uid)
-        .get();
+    DocumentSnapshot documentSnapshot =
+        await firestoreInstance.collection("users").doc(getUser()?.uid).get();
 
     return UserDetail.fromFirestore(documentSnapshot);
   }
