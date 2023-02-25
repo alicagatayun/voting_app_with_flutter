@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           '/': (context) => Splash(),
           '/auth': (context) => const AuthenticationWrapper(),
           '/register_screen': (context) => RegistrationScreen(),
-          '/login_screen': (context) => const LoginScreen(),
+          '/login_screen': (context) => LoginScreen(),
           '/room_screen': (context) => RoomPage()
         },
       ),
@@ -63,7 +63,7 @@ class AuthenticationWrapper extends StatelessWidget {
     if (firebaseuser != null) {
       return RoomPage();
     }
-    return const LoginScreen();
+    return LoginScreen();
   }
 }
 
@@ -166,7 +166,9 @@ class RegistrationScreen extends StatelessWidget {
 }
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  LoginScreen({Key? key}) : super(key: key);
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -180,10 +182,11 @@ class LoginScreen extends StatelessWidget {
             const Spacer(),
             const Center(child: Text("Login Screen")),
             const Spacer(),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: TextField(
-                decoration: InputDecoration(
+                controller: emailController,
+                decoration: const InputDecoration(
                   focusedBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(color: Colors.greenAccent, width: 1.0),
@@ -195,10 +198,11 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: TextField(
-                decoration: InputDecoration(
+                controller: passwordController,
+                decoration: const InputDecoration(
                   focusedBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(color: Colors.greenAccent, width: 1.0),
@@ -213,7 +217,24 @@ class LoginScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: OutlinedButton(
-                onPressed: () => {},
+                onPressed: () async {
+                  final result = await context
+                      .read<AuthenticationService>()
+                      .signIn(
+                        email: emailController.text.trim(),
+                        password: passwordController.text.trim(),
+                      )
+                      .then((value) {
+                    if (value) {
+                      Navigator.pushReplacementNamed(context, ('/room_screen'));
+                    } else {
+                      const snackBar = SnackBar(
+                        content: Text('Password or username is wrong'),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    }
+                  });
+                },
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0))),
@@ -251,7 +272,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   var _currentIndex = 0;
   static final List<Widget> _widgetOptions = <Widget>[
-    RoomList(),
+    const RoomList(),
     const UserDetail()
   ];
 
@@ -261,6 +282,7 @@ class _RoomPageState extends State<RoomPage> {
       home: Scaffold(
           appBar: AppBar(
             title: const Center(child: Text("Rooms")),
+
           ),
           bottomNavigationBar: SalomonBottomBar(
             currentIndex: _currentIndex,
@@ -316,102 +338,126 @@ class _RoomListState extends State<RoomList> {
               itemBuilder: (_, i) {
                 final data = docs[i].data();
                 return GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (dialogContext) {
-                        GlobalKey<FormState> _globalFormKey = GlobalKey();
-                        TextEditingController password =
-                            TextEditingController();
-                        bool hasError = false;
-                        return Form(
-                          key: _globalFormKey,
-                          child: AlertDialog(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(40)),
-                            elevation: 16,
-                            title: Center(
-                                child: Text(
-                              data['name'] + " Room Password",
-                              style: const TextStyle(fontSize: 16),
-                            )),
-                            content: TextFormField(
-                              controller: password,
-                              obscureText: true,
-                              validator: (value) {
-                                if (data['pw'] != password.text) {
-                                  return 'Wrong Password';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                errorText: hasError ? 'Wrong Password' : null,
-                                hintText: "Password",
-                                focusedBorder: const OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
-                                  borderSide:
-                                      BorderSide(width: 1, color: Colors.green),
+                  onTap: () async {
+                    await context
+                        .read<AuthenticationService>()
+                        .getUserDetail()
+                        .then((value) {
+                      if (value.name != '') {
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            GlobalKey<FormState> _globalFormKey = GlobalKey();
+                            TextEditingController password =
+                                TextEditingController();
+                            bool hasError = false;
+                            return Form(
+                              key: _globalFormKey,
+                              child: AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(40)),
+                                elevation: 16,
+                                title: Center(
+                                    child: Text(
+                                  data['name'] + " Room Password",
+                                  style: const TextStyle(fontSize: 16),
+                                )),
+                                content: TextFormField(
+                                  controller: password,
+                                  obscureText: true,
+                                  validator: (value) {
+                                    if (data['pw'] != password.text) {
+                                      return 'Wrong Password';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    errorText:
+                                        hasError ? 'Wrong Password' : null,
+                                    hintText: "Password",
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                      borderSide: BorderSide(
+                                          width: 1, color: Colors.green),
+                                    ),
+                                    disabledBorder: const OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                      borderSide: BorderSide(
+                                          width: 1, color: Colors.orange),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                      borderSide: BorderSide(
+                                          width: 1, color: Colors.green),
+                                    ),
+                                    border: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4)),
+                                        borderSide: BorderSide(
+                                          width: 1,
+                                        )),
+                                    errorBorder: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4)),
+                                        borderSide: BorderSide(
+                                            width: 1, color: Colors.black)),
+                                    focusedErrorBorder:
+                                        const OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(4)),
+                                            borderSide: BorderSide(
+                                                width: 1, color: Colors.red)),
+                                  ),
                                 ),
-                                disabledBorder: const OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
-                                  borderSide: BorderSide(
-                                      width: 1, color: Colors.orange),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
-                                  borderSide:
-                                      BorderSide(width: 1, color: Colors.green),
-                                ),
-                                border: const OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    borderSide: BorderSide(
-                                      width: 1,
-                                    )),
-                                errorBorder: const OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    borderSide: BorderSide(
-                                        width: 1, color: Colors.black)),
-                                focusedErrorBorder: const OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    borderSide: BorderSide(
-                                        width: 1, color: Colors.red)),
+                                actions: <Widget>[
+                                  Center(
+                                    child: ElevatedButton(
+                                        onPressed: () async {
+                                          if (_globalFormKey.currentState!
+                                              .validate()) {
+                                            Navigator.pop(dialogContext);
+                                            await context
+                                                .read<AuthenticationService>()
+                                                .assignUserToARooom(
+                                                    roomId: docs[i].id)
+                                                .then((value) {
+                                              if (value == "OK") {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            RoomManagement(
+                                                                docs[i].id)));
+                                              } else if (value == "NOK") {
+                                                const snackBar = SnackBar(
+                                                  content: Text(
+                                                      'You are already in a room, first leave from that'),
+                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(snackBar);
+                                              }
+                                            });
+                                          }
+                                        },
+                                        child: const Text("Confirm")),
+                                  )
+                                ],
                               ),
-                            ),
-                            actions: <Widget>[
-                              Center(
-                                child: ElevatedButton(
-                                    onPressed: () {
-                                      if (_globalFormKey.currentState!
-                                          .validate()) {
-                                        Navigator.pop(dialogContext);
-
-
-
-
-
-
-
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    RoomManagement(
-                                                        docs[i].id)));
-                                      }
-                                    },
-                                    child: const Text("Confirm")),
-                              )
-                            ],
-                          ),
+                            );
+                          },
                         );
-                      },
-                    );
+                      } else {
+                        const snackBar = SnackBar(
+                          content: Text(
+                              'You have to specify a valid name to enter a room'),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                      }
+                    });
+                    // if (!mounted) return;
                   },
                   child: ListTile(
                     title: Text(data['name']),
@@ -455,13 +501,11 @@ class _UserDetailState extends State<UserDetail> {
   void initState() {
     final result =
         context.read<AuthenticationService>().getUserDetail().then((value) {
-      if (value.name != '') {
-        setState(() {
-          isLoading = false;
-        });
-        nameController.text = value.name!;
-        surnameController.text = value.surname!;
-      }
+      setState(() {
+        isLoading = false;
+      });
+      nameController.text = value.name!;
+      surnameController.text = value.surname!;
     });
 
     // TODO: implement initState

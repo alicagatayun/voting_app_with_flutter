@@ -16,10 +16,8 @@ class _SplashState extends State<Splash> {
     final size = query.size;
     final itemWidth = size.width * 0.4;
     final itemHeight = itemWidth * (size.width / size.height);
-    return Scaffold(
-        body: Container(
-      child: Text("Süper Splash Screen"),
-    ));
+    return const Scaffold(
+        body: Center(child: Text("Super Splash Screen")));
   }
 
   @override

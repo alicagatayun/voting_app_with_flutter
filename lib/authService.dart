@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -14,14 +16,21 @@ class AuthenticationService {
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   // 3
-  Future<String> signIn(
-      {required String email, required String password}) async {
+  Future<bool> signIn({required String email, required String password}) async {
     try {
       await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
-      return "Signed in";
+      return true;
     } on FirebaseAuthException catch (e) {
-      return e.message!;
+      return false;
+    }
+  }
+
+  User? getUser() {
+    try {
+      return _firebaseAuth.currentUser;
+    } on FirebaseAuthException {
+      return null;
     }
   }
 
@@ -50,29 +59,40 @@ class AuthenticationService {
     }
   }
 
-  Future<String> assignUserToARooom(
-      {required String roomId, required String userId}) async {
+  Future<String> assignUserToARooom({required String roomId}) async {
     try {
-      var userExistSnapshot = firestoreInstance
+      DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
           .collection('rooms')
-          .where('users', arrayContains: {'id': userId}).get();
-      if (userExistSnapshot.toString().isEmpty) {
+          .doc(roomId)
+          .get();
+
+      Map<String, dynamic>? data = roomSnapshot.data() as Map<String, dynamic>?;
+      if (data != null) {
+        dynamic users = data['users'];
+        if (users is List) {
+          for (var element in users) {
+            if (element['id'] == getUser()?.uid) {
+              return "OK";
+            }
+          }
+        }
         DocumentReference documentReference =
             firestoreInstance.collection('rooms').doc(roomId);
 
         //Kullanıcının username'ini alır.
         DocumentReference documentReferenceForUserTable =
-            firestoreInstance.collection('users').doc(userId);
+            firestoreInstance.collection('users').doc(getUser()?.uid);
         var userName;
-        documentReferenceForUserTable.get().then((value) {
+        await documentReferenceForUserTable.get().then((value) {
           Map<String, dynamic>? data = value.data() as Map<String, dynamic>?;
           if (value.exists && data != null) {
-            userName = data['name'];
+            userName = data['name'][0].toString().toUpperCase() +
+                data['surname'][0].toString().toUpperCase();
           }
         });
 
         //Kullanıcıyı selected odaya assign eder.
-        documentReference.get().then((documentSnapshot) {
+        await documentReference.get().then((documentSnapshot) async {
           Map<String, dynamic>? data =
               documentSnapshot.data() as Map<String, dynamic>?;
 
@@ -81,30 +101,59 @@ class AuthenticationService {
               data != null &&
               data['users'] != null) {
             Map<String, dynamic> newUser = {
-              'id': userId,
+              'id': getUser()?.uid,
               'name': userName,
               'sp': "-1",
             };
 
-            documentReference.update(newUser);
-
-
-
+            await documentReference.update({
+              'users': FieldValue.arrayUnion([newUser])
+            });
           } else {
             //UserMapi not exist
-            List<Map<String, String>> myArray = [
-              {'id': userId, 'sp': "-1", 'name': userName},
+            List<Map<String, String?>> myArray = [
+              {'id': getUser()?.uid, 'sp': "-1", 'name': userName},
             ];
-            documentReference.set({
+            await documentReference.update({
               'users': myArray,
             });
           }
         });
-      } else {}
+      }
 
       return "OK";
     } on FirebaseException catch (e) {
       return e.message!;
+    }
+  }
+
+  Future<String> leftFromARoom({required String roomId}) async {
+    try {
+      DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance.collection('rooms').doc(roomId).get();
+
+      Map<String, dynamic>? data = roomSnapshot.data() as Map<String, dynamic>?;
+      if (data != null) {
+        dynamic users = data['users'];
+        if (users is List) {
+          for (var element in users) {
+            if (element['id'] == getUser()?.uid) {
+              Map<String, String?> myArray = {
+                'id': element['id'],
+                'name': element['name'],
+                'sp': element['sp']
+              };
+              DocumentReference documentReference = firestoreInstance.collection('rooms').doc(roomId);
+              await documentReference.update({
+                'users': FieldValue.arrayRemove([myArray])
+              });
+              return "OK";
+            }
+          }
+        }
+      }
+      return "NOK"; // moved outside the loop
+    } catch (e) {
+      return "NOK";
     }
   }
 
@@ -119,13 +168,6 @@ class AuthenticationService {
   }
 
 // 6
-  User? getUser() {
-    try {
-      return _firebaseAuth.currentUser;
-    } on FirebaseAuthException {
-      return null;
-    }
-  }
 
   Future<UserDetail> getUserDetail() async {
     DocumentSnapshot documentSnapshot =
