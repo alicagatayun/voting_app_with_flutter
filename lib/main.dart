@@ -11,6 +11,7 @@ import 'authService.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+      name: 'sp-ar',
       options: const FirebaseOptions(
           apiKey: "AIzaSyBm3-eFH5Mg1-y8uKszghYymDxfZ9QPVHs",
           authDomain: "sp-ar-bb143.firebaseapp.com",
