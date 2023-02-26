@@ -4,14 +4,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-import 'package:spl/actioning/model/rooms.dart';
 import 'package:spl/room.dart';
 import 'package:spl/splash_screen.dart';
 import 'authService.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyBm3-eFH5Mg1-y8uKszghYymDxfZ9QPVHs",
+          authDomain: "sp-ar-bb143.firebaseapp.com",
+          projectId: "sp-ar-bb143",
+          storageBucket: "sp-ar-bb143.appspot.com",
+          messagingSenderId: "71156585057",
+          appId: "1:71156585057:web:199e93aab70b6d7d565020",
+          measurementId: "G-J9HC4XQXWP"));
   runApp(const MyApp());
 }
 
@@ -282,7 +289,6 @@ class _RoomPageState extends State<RoomPage> {
       home: Scaffold(
           appBar: AppBar(
             title: const Center(child: Text("Rooms")),
-
           ),
           bottomNavigationBar: SalomonBottomBar(
             currentIndex: _currentIndex,
@@ -422,7 +428,8 @@ class _RoomListState extends State<RoomList> {
                                             await context
                                                 .read<AuthenticationService>()
                                                 .assignUserToARooom(
-                                                    roomId: docs[i].id,sp: "-1")
+                                                    roomId: docs[i].id,
+                                                    sp: "-1")
                                                 .then((value) {
                                               if (value == "OK") {
                                                 Navigator.push(
