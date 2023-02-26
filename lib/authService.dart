@@ -59,7 +59,7 @@ class AuthenticationService {
     }
   }
 
-  Future<String> assignUserToARooom({required String roomId}) async {
+  Future<String> assignUserToARooom({required String roomId,required String sp}) async {
     try {
       DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
           .collection('rooms')
@@ -103,7 +103,7 @@ class AuthenticationService {
             Map<String, dynamic> newUser = {
               'id': getUser()?.uid,
               'name': userName,
-              'sp': "-1",
+              'sp': sp,
             };
 
             await documentReference.update({
@@ -112,7 +112,7 @@ class AuthenticationService {
           } else {
             //UserMapi not exist
             List<Map<String, String?>> myArray = [
-              {'id': getUser()?.uid, 'sp': "-1", 'name': userName},
+              {'id': getUser()?.uid, 'sp': sp, 'name': userName},
             ];
             await documentReference.update({
               'users': myArray,
@@ -157,6 +157,12 @@ class AuthenticationService {
     }
   }
 
+
+  Future<void> setUserVote({required String sp,required String roomId}) async{
+
+      await leftFromARoom(roomId: roomId);
+      await assignUserToARooom(roomId: roomId,sp: sp);
+  }
   // 5
   Future<String> signOut() async {
     try {
@@ -175,4 +181,10 @@ class AuthenticationService {
 
     return UserDetail.fromFirestore(documentSnapshot);
   }
-}
+
+  Future<void> changeState({required String state,required String roomId}) async{
+    DocumentReference documentReference = firestoreInstance.collection('rooms').doc(roomId);
+    await documentReference.update({
+      'vote_status': state
+    });
+  }}

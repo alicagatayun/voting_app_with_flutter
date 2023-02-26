@@ -15,7 +15,8 @@ class RoomManagement extends StatefulWidget {
 }
 
 class _RoomManagementState extends State<RoomManagement> {
-  var user;
+  User? user;
+  var currentState = "REVEALED";
 
   @override
   void initState() {
@@ -51,9 +52,8 @@ class _RoomManagementState extends State<RoomManagement> {
             onWillPop: () async {
               // Show confirmation dialog and wait for user response
               bool confirm = await getConfirmation();
-              if(confirm){
+              if (confirm) {
                 await leaveFromRoom();
-
               }
               // Return true to close the app if the user confirms
               return confirm ?? false;
@@ -69,9 +69,8 @@ class _RoomManagementState extends State<RoomManagement> {
                         child: IconButton(
                             onPressed: () async {
                               bool confirm = await getConfirmation();
-                              if(confirm){
+                              if (confirm) {
                                 await leaveFromRoom();
-
                               }
                             },
                             icon: const Icon(Icons.exit_to_app)))
@@ -90,9 +89,25 @@ class _RoomManagementState extends State<RoomManagement> {
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(24.0),
-                                      child: Text(docs['vote_status']),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        docs['adminId'] == user?.uid
+                                            ? ElevatedButton(
+                                                onPressed: () async {
+                                                  await changeState();
+                                                },
+                                                child: Text("Change State"))
+                                            : Container(),
+                                        Padding(
+                                          padding: const EdgeInsets.all(24.0),
+                                          child: Text(
+                                            docs['vote_status'],
+                                            style: TextStyle(fontSize: 17),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Wrap(
                                       spacing: spacing, //vertical spacing
@@ -158,68 +173,95 @@ class _RoomManagementState extends State<RoomManagement> {
                                       }),
                                     ),
                                     const Spacer(),
-                                    Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("0")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("1")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("2")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("3"))
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("5")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("8")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("13")),
-                                            ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text("21"))
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              bottom: 16.0),
-                                          child: Row(
+                                    if (docs['vote_status'] == 'VOTING')
+                                      Column(
+                                        children: [
+                                          Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceEvenly,
                                             children: [
                                               ElevatedButton(
-                                                  onPressed: () {},
-                                                  child: const Text("34")),
+                                                  onPressed: () {
+                                                    setVote("0");
+                                                  },
+                                                  child: const Text("0")),
                                               ElevatedButton(
-                                                  onPressed: () {},
-                                                  child: const Text("55")),
+                                                  onPressed: () {
+                                                    setVote("1");
+                                                  },
+                                                  child: const Text("1")),
                                               ElevatedButton(
-                                                  onPressed: () {},
-                                                  child: const Text("89")),
+                                                  onPressed: () {
+                                                    setVote("2");
+                                                  },
+                                                  child: const Text("2")),
                                               ElevatedButton(
-                                                  onPressed: () {},
-                                                  child: const Text("144"))
+                                                  onPressed: () {
+                                                    setVote("3");
+                                                  },
+                                                  child: const Text("3"))
                                             ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    setVote("5");
+                                                  },
+                                                  child: const Text("5")),
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    setVote("8");
+                                                  },
+                                                  child: const Text("8")),
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    setVote("13");
+                                                  },
+                                                  child: const Text("13")),
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    setVote("21");
+                                                  },
+                                                  child: const Text("21"))
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 16.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: [
+                                                ElevatedButton(
+                                                    onPressed: () {
+                                                      setVote("34");
+                                                    },
+                                                    child: const Text("34")),
+                                                ElevatedButton(
+                                                    onPressed: () {
+                                                      setVote("55");
+                                                    },
+                                                    child: const Text("55")),
+                                                ElevatedButton(
+                                                    onPressed: () {
+                                                      setVote("89");
+                                                    },
+                                                    child: const Text("89")),
+                                                ElevatedButton(
+                                                    onPressed: () {
+                                                      setVote("144");
+                                                    },
+                                                    child: const Text("144"))
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      Container()
                                   ],
                                 )
                               : const Center(
@@ -240,22 +282,43 @@ class _RoomManagementState extends State<RoomManagement> {
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirm exit'),
-        content: Text('Are you sure you want to exit?'),
+        title: const Text('Confirm exit'),
+        content: const Text('Are you sure you want to exit?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Confirm'),
+            child: const Text('Confirm'),
           ),
         ],
       ),
     );
   }
-  Future<void> leaveFromRoom() async{
+
+  Future<void> changeState() async {
+    setState(() {
+      if (currentState == "VOTING") {
+        currentState = "REVEALED";
+      } else {
+        currentState = "VOTING";
+      }
+    });
+
+    await context
+        .read<AuthenticationService>()
+        .changeState(roomId: widget.roomId,state:currentState);
+  }
+
+  Future<void> setVote(String vote) async {
+    await context
+        .read<AuthenticationService>()
+        .setUserVote(roomId: widget.roomId, sp: vote);
+  }
+
+  Future<void> leaveFromRoom() async {
     await context
         .read<AuthenticationService>()
         .leftFromARoom(roomId: widget.roomId)
@@ -264,11 +327,9 @@ class _RoomManagementState extends State<RoomManagement> {
         Navigator.pop(context);
       } else {
         const snackBar = SnackBar(
-          content: Text(
-              'An error occured while leaving from the room'),
+          content: Text('An error occured while leaving from the room'),
         );
-        ScaffoldMessenger.of(context)
-            .showSnackBar(snackBar);
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     });
   }

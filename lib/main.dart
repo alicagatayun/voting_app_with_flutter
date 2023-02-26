@@ -422,7 +422,7 @@ class _RoomListState extends State<RoomList> {
                                             await context
                                                 .read<AuthenticationService>()
                                                 .assignUserToARooom(
-                                                    roomId: docs[i].id)
+                                                    roomId: docs[i].id,sp: "-1")
                                                 .then((value) {
                                               if (value == "OK") {
                                                 Navigator.push(
