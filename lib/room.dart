@@ -17,6 +17,7 @@ class RoomManagement extends StatefulWidget {
 class _RoomManagementState extends State<RoomManagement> {
   User? user;
   var currentState = "REVEALED";
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -76,201 +77,229 @@ class _RoomManagementState extends State<RoomManagement> {
                             icon: const Icon(Icons.exit_to_app)))
                   ]),
                 ),
-                body: LayoutBuilder(
-                  builder: (context, constraint) {
-                    return SingleChildScrollView(
-                      physics: const ScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraint.maxHeight),
-                        child: IntrinsicHeight(
-                          child: data != null
-                              ? Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        docs['adminId'] == user?.uid
-                                            ? ElevatedButton(
-                                                onPressed: () async {
-                                                  await changeState();
-                                                },
-                                                child: Text("Change State"))
-                                            : Container(),
-                                        Padding(
-                                          padding: const EdgeInsets.all(24.0),
-                                          child: Text(
-                                            docs['vote_status'],
-                                            style: TextStyle(fontSize: 17),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Wrap(
-                                      spacing: spacing, //vertical spacing
-                                      runSpacing:
-                                          runSpacing, //horizontal spacing
-                                      alignment: WrapAlignment.spaceEvenly,
-                                      children: List<Widget>.generate(
-                                          data.length, (index) {
-                                        final userData = data[index];
-                                        if (docs['vote_status'] != 'VOTING') {
-                                          return SizedBox(
-                                            width: w,
-                                            height: w,
-                                            child: Column(
-                                              children: [
-                                                CircleAvatar(
-                                                    backgroundColor:
-                                                        Colors.indigo,
-                                                    child: Text(
-                                                      data[index]['sp'] == '-1'
-                                                          ? '?'
-                                                          : data[index]['sp'],
-                                                      style: const TextStyle(
-                                                          color: Colors.white),
-                                                    )),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    data[index][
-                                                        'name'], // Use the fullName property of each item
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        } else {
-                                          return SizedBox(
-                                            width: w,
-                                            height: w,
-                                            child: Column(
-                                              children: [
-                                                CircleAvatar(
-                                                  backgroundColor: Colors.white,
-                                                  child: Image.asset(data[index]
-                                                              ['sp'] ==
-                                                          '-1'
-                                                      ? 'assets/images/thinking.png'
-                                                      : 'assets/images/ready.png'),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    data[index][
-                                                        'name'], // Use the fullName property of each item
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }
-                                      }),
-                                    ),
-                                    const Spacer(),
-                                    if (docs['vote_status'] == 'VOTING')
-                                      Column(
+                body: isLoading
+                    ? const CircularProgressIndicator()
+                    : LayoutBuilder(
+                        builder: (context, constraint) {
+                          return SingleChildScrollView(
+                            physics: const ScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  minHeight: constraint.maxHeight),
+                              child: IntrinsicHeight(
+                                child: data != null
+                                    ? Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
                                           Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                                MainAxisAlignment.center,
                                             children: [
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("0");
-                                                  },
-                                                  child: const Text("0")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("1");
-                                                  },
-                                                  child: const Text("1")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("2");
-                                                  },
-                                                  child: const Text("2")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("3");
-                                                  },
-                                                  child: const Text("3"))
+                                              docs['adminId'] == user?.uid
+                                                  ? ElevatedButton(
+                                                      onPressed: () async {
+                                                        setState(() {
+                                                          isLoading = true;
+                                                        });
+                                                        changeState();
+                                                      },
+                                                      child: const Text(
+                                                          "Change State"))
+                                                  : Container(),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(24.0),
+                                                child: Text(
+                                                  docs['vote_status'],
+                                                  style: const TextStyle(
+                                                      fontSize: 17),
+                                                ),
+                                              ),
                                             ],
                                           ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("5");
-                                                  },
-                                                  child: const Text("5")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("8");
-                                                  },
-                                                  child: const Text("8")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("13");
-                                                  },
-                                                  child: const Text("13")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    setVote("21");
-                                                  },
-                                                  child: const Text("21"))
-                                            ],
+                                          Wrap(
+                                            spacing: spacing, //vertical spacing
+                                            runSpacing:
+                                                runSpacing, //horizontal spacing
+                                            alignment:
+                                                WrapAlignment.spaceEvenly,
+                                            children: List<Widget>.generate(
+                                                data.length, (index) {
+                                              final userData = data[index];
+                                              if (docs['vote_status'] !=
+                                                  'VOTING') {
+                                                return SizedBox(
+                                                  width: w,
+                                                  height: w,
+                                                  child: Column(
+                                                    children: [
+                                                      CircleAvatar(
+                                                          backgroundColor:
+                                                              Colors.indigo,
+                                                          child: Text(
+                                                            data[index]['sp'] ==
+                                                                    '-1'
+                                                                ? '?'
+                                                                : data[index]
+                                                                    ['sp'],
+                                                            style:
+                                                                const TextStyle(
+                                                                    color: Colors
+                                                                        .white),
+                                                          )),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                          data[index][
+                                                              'name'], // Use the fullName property of each item
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              } else {
+                                                return SizedBox(
+                                                  width: w,
+                                                  height: w,
+                                                  child: Column(
+                                                    children: [
+                                                      CircleAvatar(
+                                                        backgroundColor:
+                                                            Colors.white,
+                                                        child: Image.asset(data[
+                                                                        index]
+                                                                    ['sp'] ==
+                                                                '-1'
+                                                            ? 'assets/images/thinking.png'
+                                                            : 'assets/images/ready.png'),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                          data[index][
+                                                              'name'], // Use the fullName property of each item
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }
+                                            }),
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 16.0),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
+                                          const Spacer(),
+                                          if (docs['vote_status'] == 'VOTING')
+                                            Column(
                                               children: [
-                                                ElevatedButton(
-                                                    onPressed: () {
-                                                      setVote("34");
-                                                    },
-                                                    child: const Text("34")),
-                                                ElevatedButton(
-                                                    onPressed: () {
-                                                      setVote("55");
-                                                    },
-                                                    child: const Text("55")),
-                                                ElevatedButton(
-                                                    onPressed: () {
-                                                      setVote("89");
-                                                    },
-                                                    child: const Text("89")),
-                                                ElevatedButton(
-                                                    onPressed: () {
-                                                      setVote("144");
-                                                    },
-                                                    child: const Text("144"))
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("0");
+                                                        },
+                                                        child: const Text("0")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("1");
+                                                        },
+                                                        child: const Text("1")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("2");
+                                                        },
+                                                        child: const Text("2")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("3");
+                                                        },
+                                                        child: const Text("3"))
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("5");
+                                                        },
+                                                        child: const Text("5")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("8");
+                                                        },
+                                                        child: const Text("8")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("13");
+                                                        },
+                                                        child:
+                                                            const Text("13")),
+                                                    ElevatedButton(
+                                                        onPressed: () {
+                                                          setVote("21");
+                                                        },
+                                                        child: const Text("21"))
+                                                  ],
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 16.0),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceEvenly,
+                                                    children: [
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            setVote("34");
+                                                          },
+                                                          child:
+                                                              const Text("34")),
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            setVote("55");
+                                                          },
+                                                          child:
+                                                              const Text("55")),
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            setVote("89");
+                                                          },
+                                                          child:
+                                                              const Text("89")),
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            setVote("144");
+                                                          },
+                                                          child:
+                                                              const Text("144"))
+                                                    ],
+                                                  ),
+                                                ),
                                               ],
-                                            ),
-                                          ),
+                                            )
+                                          else
+                                            Container()
                                         ],
                                       )
-                                    else
-                                      Container()
-                                  ],
-                                )
-                              : const Center(
-                                  child: Text("There is no one around")),
-                        ),
-                      ),
-                    );
-                  },
-                )),
+                                    : const Center(
+                                        child: Text("There is no one around")),
+                              ),
+                            ),
+                          );
+                        },
+                      )),
           );
         }
         return const Center(child: CircularProgressIndicator());
@@ -299,6 +328,7 @@ class _RoomManagementState extends State<RoomManagement> {
   }
 
   Future<void> changeState() async {
+    isLoading = true;
     setState(() {
       if (currentState == "VOTING") {
         currentState = "REVEALED";
@@ -309,7 +339,10 @@ class _RoomManagementState extends State<RoomManagement> {
 
     await context
         .read<AuthenticationService>()
-        .changeState(roomId: widget.roomId,state:currentState);
+        .changeState(roomId: widget.roomId, state: currentState);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> setVote(String vote) async {
@@ -319,6 +352,9 @@ class _RoomManagementState extends State<RoomManagement> {
   }
 
   Future<void> leaveFromRoom() async {
+    setState(() {
+      isLoading = true;
+    });
     await context
         .read<AuthenticationService>()
         .leftFromARoom(roomId: widget.roomId)
@@ -331,6 +367,9 @@ class _RoomManagementState extends State<RoomManagement> {
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
+    });
+    setState(() {
+      isLoading = false;
     });
   }
 }

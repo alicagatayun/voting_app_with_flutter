@@ -59,7 +59,8 @@ class AuthenticationService {
     }
   }
 
-  Future<String> assignUserToARooom({required String roomId,required String sp}) async {
+  Future<String> assignUserToARooom(
+      {required String roomId, required String sp}) async {
     try {
       DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
           .collection('rooms')
@@ -129,7 +130,10 @@ class AuthenticationService {
 
   Future<String> leftFromARoom({required String roomId}) async {
     try {
-      DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance.collection('rooms').doc(roomId).get();
+      DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(roomId)
+          .get();
 
       Map<String, dynamic>? data = roomSnapshot.data() as Map<String, dynamic>?;
       if (data != null) {
@@ -142,7 +146,8 @@ class AuthenticationService {
                 'name': element['name'],
                 'sp': element['sp']
               };
-              DocumentReference documentReference = firestoreInstance.collection('rooms').doc(roomId);
+              DocumentReference documentReference =
+                  firestoreInstance.collection('rooms').doc(roomId);
               await documentReference.update({
                 'users': FieldValue.arrayRemove([myArray])
               });
@@ -157,12 +162,11 @@ class AuthenticationService {
     }
   }
 
-
-  Future<void> setUserVote({required String sp,required String roomId}) async{
-
-      await leftFromARoom(roomId: roomId);
-      await assignUserToARooom(roomId: roomId,sp: sp);
+  Future<void> setUserVote({required String sp, required String roomId}) async {
+    await leftFromARoom(roomId: roomId);
+    await assignUserToARooom(roomId: roomId, sp: sp);
   }
+
   // 5
   Future<String> signOut() async {
     try {
@@ -182,9 +186,29 @@ class AuthenticationService {
     return UserDetail.fromFirestore(documentSnapshot);
   }
 
-  Future<void> changeState({required String state,required String roomId}) async{
-    DocumentReference documentReference = firestoreInstance.collection('rooms').doc(roomId);
-    await documentReference.update({
-      'vote_status': state
-    });
-  }}
+  Future<void> changeState(
+      {required String state, required String roomId}) async {
+    DocumentReference documentReference =
+        firestoreInstance.collection('rooms').doc(roomId);
+    if (state == "VOTING") {
+      //CLEAR ALL DATA..
+      DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(roomId)
+          .get();
+
+      Map<String, dynamic>? data = roomSnapshot.data() as Map<String, dynamic>?;
+      if (data != null) {
+        dynamic users = data['users'];
+        if (users is List) {
+          for (var element in users) {
+            element['sp'] = "-1";
+          }
+        }
+        await documentReference.update({'users': users});
+      }
+    }
+
+    await documentReference.update({'vote_status': state});
+  }
+}
