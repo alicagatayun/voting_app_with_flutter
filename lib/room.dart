@@ -18,6 +18,7 @@ class _RoomManagementState extends State<RoomManagement> {
   User? user;
   var currentState = "REVEALED";
   bool isLoading = false;
+  String averageValue = "Calculating..";
 
   @override
   void initState() {
@@ -290,7 +291,25 @@ class _RoomManagementState extends State<RoomManagement> {
                                               ],
                                             )
                                           else
-                                            Container()
+                                            Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    const Text("Average : "),
+                                                    Text(docs['average'])
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          Spacer(),
                                         ],
                                       )
                                     : const Center(

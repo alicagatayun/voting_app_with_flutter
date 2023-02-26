@@ -190,6 +190,8 @@ class AuthenticationService {
       {required String state, required String roomId}) async {
     DocumentReference documentReference =
         firestoreInstance.collection('rooms').doc(roomId);
+    double average = 0;
+
     if (state == "VOTING") {
       //CLEAR ALL DATA..
       DocumentSnapshot roomSnapshot = await FirebaseFirestore.instance
@@ -208,7 +210,37 @@ class AuthenticationService {
         await documentReference.update({'users': users});
       }
     }
+    else{
+      DocumentSnapshot roomSnapshot =
+      await FirebaseFirestore.instance.collection('rooms').doc(roomId).get();
 
-    await documentReference.update({'vote_status': state});
+      Map<String, dynamic>? data = roomSnapshot.data() as Map<String, dynamic>?;
+      int storyPointTotal = 0;
+      int undecidedVoteCount = 0;
+      int totalValidVote = 0;
+      int length = 0;
+      if (data != null) {
+        dynamic users = data['users'];
+        if (users is List) {
+          for (var element in users) {
+            var sp = int.tryParse(element['sp']);
+            if (sp == null) {
+              continue;
+            }
+            if (sp == -1) {
+              undecidedVoteCount++;
+            } else {
+              totalValidVote++;
+              storyPointTotal += sp;
+            }
+            length++;
+          }
+        }
+      }
+      average=storyPointTotal/totalValidVote;
+    }
+
+    await documentReference.update({'vote_status': state,'average':average.toString()});
   }
+
 }
